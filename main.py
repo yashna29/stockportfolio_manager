@@ -11,21 +11,24 @@ from datetime import date
 ticker_list = []
 shares_list = []
 current_market_price_list = []
+purchase_price_list = []
 
 # Creating portfolio for user
-def create_portfolio (tmp_tckr_symbol, tmp_shares):
+def create_portfolio (tmp_tckr_symbol, tmp_shares, tmp_purchase):
   ticker_list.append(tmp_tckr_symbol)
   shares_list.append(tmp_shares)
+  purchase_price_list.append(tmp_purchase)
 
 # Update portfolio for user
 def update_portfolio (operation):
   # operation can have values 'ADD' or 'DELETE'
-  global ticker_list, shares_list, current_market_price_list, investment_value_list
+  global ticker_list, shares_list, current_market_price_list, investment_value_list, purchase_price_list, profit_loss_list
   # adding a new stock to the portfolio
   if (operation == "ADD"):    
     tmp_tckr_symbol = (input("Enter the stock ticker symbol you want to add: "))
     tmp_shares_held = int(input("Enter the number of shares you own for "  + tmp_tckr_symbol + ": " ))
-    create_portfolio(tmp_tckr_symbol, tmp_shares_held)
+    tmp_purchase = float(input("Enter the purchase price per share for " + tmp_tckr_symbol + ": "))
+    create_portfolio(tmp_tckr_symbol, tmp_shares_held, tmp_purchase)
   # deleting a stock from the portfolio
   elif (operation == "DELETE"):
     tmp_tckr_symbol = input("Enter the ticker symbol of the stock you want to delete: ")
@@ -35,6 +38,8 @@ def update_portfolio (operation):
         shares_list.pop(i)
         current_market_price_list.pop(i)
         investment_value_list.pop(i)
+        purchase_price_list.pop(i)
+        profit_loss_list.pop(i)
         break
 
 # Displaying portfolio for user 
@@ -42,90 +47,99 @@ def display_portfolio():
   curr_time = (time.strftime("%H:%M:%S"))
   today = date.today()
   print ("\nYour portfolio as of " + str(today) + " " + str(curr_time) + " :")
-  print ("#\tTicker\t\t # of shares\t Current Market Price\t Value")
-  print ("-----------------------------------------------------------------------")
+  print ("#\tTicker\t\t # of shares\t Current Market Price\t Purchase Price\t\t Value\t\t Unrealized Profit/Loss")
+  print ("---------------------------------------------------------------------------------------------------------------------------------")
   for i in range(len(ticker_list)):
-    print (str(i+1) + "\t" + ticker_list[i] + "\t\t\t" + str(shares_list[i]) + "\t\t" + str(current_market_price_list[i]) + "\t\t" + str(investment_value_list[i]))
-  print ("\nYour total portfolio value is $" + str(round(portfolio_value, 2)))
+    print (str(i+1) + "\t" + ticker_list[i] + "\t\t\t" + str(shares_list[i]) + "\t\t" + str(current_market_price_list[i]) + "\t\t\t" + str(purchase_price_list[i]) + "\t\t" + str(investment_value_list[i]) + 
+    "\t\t\t" + str(round(profit_loss_list[i], 2)))
+  print ("\nYour total portfolio value is ($): " + str(round(portfolio_value, 2)))
+  print ("\nYour total unrealized gain ($): " + str(round(portfolio_profit_loss, 2)))
 
 # Gathering the current market price for each ticker present in ticker_list
 def get_market_price_for_tickers():
   global ticker_list, current_market_price_list
   current_market_price_list = []
   for tckr in ticker_list:
-    print (tckr)
+    #print (tckr)
     ticker_data = yf.Ticker(tckr)
-    print (ticker_data)
-    print (ticker_data.info['regularMarketPrice'])
+    #print (ticker_data)
+    #print (ticker_data.info['regularMarketPrice'])
     current_market_price_list.append(round(ticker_data.info['regularMarketPrice'], 2))
 
 # calculating total value of portfolio
 def calculate_portfolio_value():
   global portfolio_value
+  global portfolio_profit_loss
   global investment_value_list
+  global profit_loss_list
   investment_value_list = []
+  profit_loss_list = []
   # calculating investment value for each stock holding
   for i in range(len(shares_list)):
     investment_value_for_ticker = round(shares_list[i] * current_market_price_list[i],2)
     investment_value_list.append(investment_value_for_ticker)
+    total_purchase_price = round(purchase_price_list[i] * shares_list[i])
+    profit_loss_list.append(investment_value_for_ticker - total_purchase_price)
   # calculating total portfolio value
   portfolio_value = 0
+  portfolio_profit_loss = 0
   for val in range(0, len(investment_value_list)):
     portfolio_value = portfolio_value + investment_value_list[val]
+    portfolio_profit_loss = portfolio_profit_loss + profit_loss_list[val]
 
 # sorting the portfolio
 def sort_portfolio(field_name, sort_order):
   # field_name expects one of these values: 'T' for ticker , 'S' for number of shares, 'M' for current market price, 'V' for investment value
-  # sort_order expects one of these values: 'ASC' for ascending, 'DESC' for descending 
-  global ticker_list, shares_list, current_market_price_list, investment_value_list
+  # sort_order expects one of these values: 'A' for ascending, 'D' for descending 
+  global ticker_list, shares_list, current_market_price_list, investment_value_list, purchase_price_list, profit_loss_list
   # sorting by ticker symbol in ascending order
   if (field_name == 'T' and sort_order == 'A'):
-    zipped_lists = zip(ticker_list, shares_list, current_market_price_list, investment_value_list)
+    zipped_lists = zip(ticker_list, shares_list, current_market_price_list, investment_value_list, purchase_price_list, profit_loss_list)
     sorted_pairs = sorted(zipped_lists)
     tuples = zip(*sorted_pairs)
-    ticker_list, shares_list, current_market_price_list, investment_value_list = [ list(tuple) for tuple in  tuples]
+    ticker_list, shares_list, current_market_price_list, investment_value_list, purchase_price_list, profit_loss_list = [ list(tuple) for tuple in  tuples]
   # sorting by ticker symbol in descending order
   elif (field_name == 'T' and sort_order == 'D'):
-    zipped_lists = zip(ticker_list, shares_list, current_market_price_list, investment_value_list)
+    zipped_lists = zip(ticker_list, shares_list, current_market_price_list, investment_value_list, purchase_price_list, profit_loss_list)
     sorted_pairs = sorted(zipped_lists, reverse=True)
     tuples = zip(*sorted_pairs)
-    ticker_list, shares_list, current_market_price_list, investment_value_list = [ list(tuple) for tuple in  tuples]
+    ticker_list, shares_list, current_market_price_list, investment_value_list, purchase_price_list, profit_loss_list = [ list(tuple) for tuple in  tuples]
   # sorting by number of shares in ascending order
   if (field_name == 'S' and sort_order == 'A'):
-    zipped_lists = zip(shares_list, current_market_price_list, investment_value_list, ticker_list)
+    zipped_lists = zip(shares_list, current_market_price_list, investment_value_list, ticker_list, purchase_price_list, profit_loss_list)
     sorted_pairs = sorted(zipped_lists)
     tuples = zip(*sorted_pairs)
-    shares_list, current_market_price_list, investment_value_list, ticker_list = [ list(tuple) for tuple in  tuples]
+    shares_list, current_market_price_list, investment_value_list, ticker_list, purchase_price_list, profit_loss_list = [ list(tuple) for tuple in  tuples]
   # sorting by number of shares in descending order
   elif (field_name == 'S' and sort_order == 'D'):
-    zipped_lists = zip(shares_list, current_market_price_list, investment_value_list, ticker_list)
+    zipped_lists = zip(shares_list, current_market_price_list, investment_value_list, ticker_list, purchase_price_list, profit_loss_list)
     sorted_pairs = sorted(zipped_lists, reverse = True)
     tuples = zip(*sorted_pairs)
-    shares_list, current_market_price_list, investment_value_list, ticker_list = [ list(tuple) for tuple in  tuples]
+    shares_list, current_market_price_list, investment_value_list, ticker_list, purchase_price_list, profit_loss_list = [ list(tuple) for tuple in  tuples]
   # sorting by current market price in ascending order
   if (field_name == 'M' and sort_order == 'A'):
-    zipped_lists = zip(current_market_price_list, investment_value_list, ticker_list, shares_list)
+    zipped_lists = zip(current_market_price_list, investment_value_list, ticker_list, shares_list, purchase_price_list, profit_loss_list)
     sorted_pairs = sorted(zipped_lists)
     tuples = zip(*sorted_pairs)
-    current_market_price_list, investment_value_list, ticker_list, shares_list = [ list(tuple) for tuple in  tuples]
+    current_market_price_list, investment_value_list, ticker_list, shares_list, purchase_price_list, profit_loss_list = [ list(tuple) for tuple in  tuples]
   # sorting by current market price in descending order
   elif (field_name == 'M' and sort_order == 'D'):
-    zipped_lists = zip(current_market_price_list, investment_value_list, ticker_list, shares_list)
+    zipped_lists = zip(current_market_price_list, investment_value_list, ticker_list, shares_list, purchase_price_list, profit_loss_list)
     sorted_pairs = sorted(zipped_lists, reverse = True)
     tuples = zip(*sorted_pairs)
-    current_market_price_list, investment_value_list, ticker_list, shares_list = [ list(tuple) for tuple in  tuples]
+    current_market_price_list, investment_value_list, ticker_list, shares_list, purchase_price_list, profit_loss_list = [ list(tuple) for tuple in  tuples]
   # sorting by investment value in ascending order
   if (field_name == 'V' and sort_order == 'A'):
-    zipped_lists = zip(investment_value_list, ticker_list, shares_list, current_market_price_list)
+    zipped_lists = zip(investment_value_list, ticker_list, shares_list, current_market_price_list, purchase_price_list, profit_loss_list)
     sorted_pairs = sorted(zipped_lists)
     tuples = zip(*sorted_pairs)
-    investment_value_list, ticker_list, shares_list, current_market_price_list = [ list(tuple) for tuple in  tuples]
+    investment_value_list, ticker_list, shares_list, current_market_price_list, purchase_price_list, profit_loss_list = [ list(tuple) for tuple in  tuples]
   # sorting by investment value in descending order
   elif (field_name == 'V' and sort_order == 'D'):
-    zipped_lists = zip(investment_value_list, ticker_list, shares_list, current_market_price_list)
+    zipped_lists = zip(investment_value_list, ticker_list, shares_list, current_market_price_list, purchase_price_list, profit_loss_list)
     sorted_pairs = sorted(zipped_lists, reverse = True)
     tuples = zip(*sorted_pairs)
-    investment_value_list, ticker_list, shares_list, current_market_price_list = [ list(tuple) for tuple in  tuples]
+    investment_value_list, ticker_list, shares_list, current_market_price_list, purchase_price_list, profit_loss_list = [ list(tuple) for tuple in  tuples]
 
 # displaying menu options for user to choose
 def display_menu_options_and_process_user_actions():
@@ -184,7 +198,9 @@ security_number = int(input("\nEnter the number of securities in your portfolio:
 for i in range(security_number):
   tckr_symbol = (input("Enter the stock ticker symbol: "))
   shares_held = int(input("Enter the number of shares you own for "  + tckr_symbol + ": " ))
-  create_portfolio(tckr_symbol, shares_held)
+  purchase_price = float(input("Enter the purchase price per share for " + tckr_symbol + ": "))
+  create_portfolio(tckr_symbol, shares_held, purchase_price)
+
 
 # calling functions to execute required processes
 get_market_price_for_tickers()
