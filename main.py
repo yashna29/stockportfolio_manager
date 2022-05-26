@@ -76,13 +76,13 @@ def calculate_portfolio_value():
   global profit_loss_list
   investment_value_list = []
   profit_loss_list = []
-  # calculating investment value for each stock holding
+  # calculating investment value and unrealized gain for each stock holding
   for i in range(len(shares_list)):
     investment_value_for_ticker = round(shares_list[i] * current_market_price_list[i],2)
     investment_value_list.append(investment_value_for_ticker)
     total_purchase_price = round(purchase_price_list[i] * shares_list[i])
     profit_loss_list.append(investment_value_for_ticker - total_purchase_price)
-  # calculating total portfolio value
+  # calculating total portfolio value and total unrealized gain
   portfolio_value = 0
   portfolio_profit_loss = 0
   for val in range(0, len(investment_value_list)):
