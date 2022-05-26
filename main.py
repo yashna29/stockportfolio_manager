@@ -1,3 +1,5 @@
+#Developed by Yash Natu and Samarth Hiremath - AP CSA Final Project
+
 #Yahoo Finance Library - https://github.com/ranaroussi/yfinance - User: ranaroussi
 
 #importing the Yahoo Finance Library into the program to gather necessary data
@@ -196,7 +198,7 @@ security_number = int(input("\nEnter the number of securities in your portfolio:
 
 # input stock tickers for each security in portfolio
 for i in range(security_number):
-  tckr_symbol = (input("Enter the stock ticker symbol: "))
+  tckr_symbol = (input("\nEnter the stock ticker symbol: "))
   shares_held = int(input("Enter the number of shares you own for "  + tckr_symbol + ": " ))
   purchase_price = float(input("Enter the purchase price per share for " + tckr_symbol + ": "))
   create_portfolio(tckr_symbol, shares_held, purchase_price)
